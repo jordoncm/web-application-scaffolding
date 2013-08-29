@@ -1,0 +1,35 @@
+#!/bin/bash
+# Web App Scaffolding
+#
+# This folder structure and set of scripts provides a framework for building,
+# compiling, running and deploying web applications. See the readme.md files
+# throughout the framework for details.
+
+cd `dirname $0`
+
+case "$1" in
+  build)
+    find ./scripts/build.d/ -name "*.sh" | sort | xargs -I % bash "%" "$@"
+    ;;
+  clean)
+    find ./scripts/clean.d/ -name "*.sh" | sort | xargs -I % bash "%" "$@"
+    ;;
+  deploy)
+    find ./scripts/deploy.d/ -name "*.sh" | sort | xargs -I % bash "%" "$@"
+    ;;
+  lint)
+    find ./scripts/lint.d/ -name "*.sh" | sort | xargs -I % bash "%" "$@"
+    ;;
+  sample)
+    find ./scripts/sample.d/ -name "*.sh" | sort | xargs -I % bash "%" "$@"
+    ;;
+  run)
+    find ./scripts/run.d/ -name "*.sh" | sort | xargs -I % bash "%" "$@"
+    ;;
+  test)
+    find ./scripts/test.d/ -name "*.sh" | sort | xargs -I % bash "%" "$@"
+    ;;
+  *)
+    echo "USAGE: was ACTION [OPTION]..."
+    ;;
+esac

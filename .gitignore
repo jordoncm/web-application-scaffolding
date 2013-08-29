@@ -1,0 +1,4 @@
+.vagrant
+third-party/*
+build
+dist

@@ -1,0 +1,34 @@
+# This is a simple Vagrant configuration to run the scaffolding within (if you
+# choose to do so).
+
+Vagrant::Config.run do |config|
+  # You can replace this box with any deb based box you may have around (i.e.
+  # Debian, Ubuntu, Mint, etc).
+  config.vm.box = 'debian-7.1.0-amd64'
+
+  # This makes symlinks in the shared /vagrant folder work correctly on
+  # VirtualBox. In general avoid symlinks in code as they do not work right in
+  # Windows hosts.
+  config.vm.customize [
+    'setextradata',
+    :id,
+    'VBoxInternal2/SharedFoldersEnableSymlinksCreate/v-root',
+    '1'
+  ]
+
+  # This causes VirtualBox to proxy DNS into the VM otherwise lookups will
+  # fail.
+  config.vm.customize ['modifyvm', :id, '--natdnshostresolver1', 'on']
+
+  # RAM for the VM.
+  config.vm.customize ['modifyvm', :id, '--memory', 2048]
+
+  # List of ports to forward to the host.
+  # config.vm.forward_port 80, 80
+
+  # Execute a script to configure build environment.
+  # NOTE: This is currently disabled as I have been having issues with vagrant
+  # up exiting cleaning after running a shell script. Run this manually to
+  # install the base environment (this only needs ran once).
+  # config.vm.provision :shell, :path => 'setup-dev.sh'
+end
