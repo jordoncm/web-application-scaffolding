@@ -1,10 +1,10 @@
 /**
- * A sample javascript file (i.e. module).
+ * @fileoverview A sample javascript file (i.e. module).
  */
 
 goog.provide('foo.SampleClass');
 
-goog.require('exp');
+goog.require('__was__');
 
 
 
@@ -21,6 +21,8 @@ foo.SampleClass = function() {};
  */
 foo.SampleClass.prototype.say = function() {
   alert('foo');
+  // Console statements like these will be present in debug builds of the
+  // Javascript and stripped in production builds.
   console.log('foo called');
 };
 
@@ -32,5 +34,8 @@ foo.SampleClass.prototype.exported = function() {
   alert('exported');
 };
 
-exp('foo.SampleClass', foo.SampleClass);
-exp('foo.SampleClass.prototype.exported', foo.SampleClass.prototype.exported);
+__was__.exportSymbol('foo.SampleClass', foo.SampleClass);
+__was__.exportSymbol(
+  'foo.SampleClass.prototype.exported',
+  foo.SampleClass.prototype.exported
+);
