@@ -20,8 +20,8 @@ Setting Up the Development Environment
 
 The scaffolding uses the following components by default for CSS and Javascript
 compilation (and lint):
-    - Closure Compiler <https://developers.google.com/closure/compiler/>
-    - LESS <http://lesscss.org/>
+    * Closure Compiler <https://developers.google.com/closure/compiler/>
+    * LESS <http://lesscss.org/>
 
 The scaffolding will also use things like pylint and other Python utilities
 unless they are disabled.
