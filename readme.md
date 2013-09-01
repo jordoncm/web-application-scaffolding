@@ -62,6 +62,7 @@ the project containing a folder of built application and an archive of that
 folder.
 
 Options:
+
   - --debug: If this flag is present the CSS and Javascript will only be
     optimized slightly. No obfuscation or minification will be performed.
 
@@ -85,6 +86,7 @@ Builds and runs the application locally. This is only a blank stub and would
 have to be implemented for each project manually.
 
 Options:
+
   - By default accepts same options as the `build` action.
 
 ### was search ###
