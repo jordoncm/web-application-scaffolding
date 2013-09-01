@@ -1,5 +1,9 @@
 /**
  * @fileoverview A sample javascript file (i.e. module).
+ *
+ * Function calls goog.provide and goog.require are used by the compiler to
+ * establish the hierarchy of the Javascript and will not appear in the
+ * compiled Javascript output.
  */
 
 goog.provide('foo.SampleClass');
@@ -29,6 +33,9 @@ foo.SampleClass.prototype.say = function() {
 
 /**
  * An example of an exported method.
+ *
+ * This exportSymbol mehtod is used to give unobfuscated access to portions of
+ * you while compiling the rest.
  */
 foo.SampleClass.prototype.exported = function() {
   alert('exported');

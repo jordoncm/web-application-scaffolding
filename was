@@ -26,6 +26,10 @@ case "$1" in
   run)
     find ./scripts/run.d/ -name "*.sh" | sort | xargs -I % bash "%" "$@"
     ;;
+  search)
+    grep -rni --exclude-dir=third-party \
+      --exclude-dir=build --exclude-dir=dist $2 .
+    ;;
   test)
     find ./scripts/test.d/ -name "*.sh" | sort | xargs -I % bash "%" "$@"
     ;;

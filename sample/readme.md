@@ -1,3 +1,6 @@
+WAS: sample
+===========
+
 These files can be used to populate the application scaffolding with simple
 application for example purposes.
 
