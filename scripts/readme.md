@@ -20,6 +20,7 @@ passed along to each sub-script (including the action).
 To customize the actions taken you can either modify the scripts in each folder
 or drop new ones in place named in the correct order. The naming conventions
 for script files is as follows:
+
   - 0*XX*-preflight-*name*.sh: Used for preflight scripts. Steps to take before
     the default action.
   - 1*XX*-*name*.sh: Steps in the main execution of the task.

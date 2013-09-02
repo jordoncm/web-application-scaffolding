@@ -95,6 +95,7 @@ A simple `grep` alias to search the codebase. It will avoid `build`, `dist` and
 all third party code folders.
 
 Usage: `was search SEARCHEXP`
+
 Example: `was search foo`
 
 ### was test ###
