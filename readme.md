@@ -138,3 +138,5 @@ source. Use custom build rules to handle this code by placing preflight and
 postflight scripts into the scaffolding workflow (see `scripts/readme.md`).
 
 TODO(jordoncm): Move 'third-party' to a different name.
+TODO(jordoncm): Add licensing information.
+TODO(jordoncm): Move sample code and create sample action.
