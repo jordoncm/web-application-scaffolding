@@ -44,7 +44,13 @@ have) this should work fine.
 Deploying the Scaffolding
 -------------------------
 
-TODO(jordoncm): Create a was clone to copy the scaffolding.
+It is possible to just git clone or copy this repository and start customizing
+and build your application. However if you want to deploy a clean copy of this
+scaffolding to a new location, use `was clone TARGET`. See below for more
+details.
+
+TODO(jordoncm): Create a sample readme.md file to deploy with a cloned
+scaffolding (instead of this one).
 
 was Command
 -----------
@@ -69,6 +75,17 @@ Options:
 ### was clean ###
 
 Cleans the `build` and `dist` files out of the project.
+
+### was clone ###
+
+Copies the current scaffolding (and application) to a new location. Use this to
+stage the scaffolding into a new project.
+
+Usage: `was clone LOCATION`
+
+Example: `was clone foo`
+
+NOTE: The target location should not already exist.
 
 ### was deploy ###
 

@@ -14,6 +14,9 @@ case "$1" in
   clean)
     find ./scripts/clean.d/ -name "*.sh" | sort | xargs -I % bash "%" "$@"
     ;;
+  clone)
+    find ./scripts/clone.d/ -name "*.sh" | sort | xargs -I % bash "%" "$@"
+    ;;
   deploy)
     find ./scripts/deploy.d/ -name "*.sh" | sort | xargs -I % bash "%" "$@"
     ;;
