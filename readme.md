@@ -138,10 +138,9 @@ of the software process and help identify code that may be untrusted or have
 licensing issues in your project.
 
 All third party code should be placed (unmodified) into folders named
-`third-party` throughout the code base. The default build rules will treat this
+`thirdparty` throughout the code base. The default build rules will treat this
 source differently and skip steps like minification or compiling into the main
 source. Use custom build rules to handle this code by placing preflight and
 postflight scripts into the scaffolding workflow (see `scripts/readme.md`).
 
-TODO(jordoncm): Move 'third-party' to a different name.
 TODO(jordoncm): Add licensing information.

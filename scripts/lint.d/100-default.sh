@@ -8,7 +8,7 @@ cd `dirname $0`
 
 echo "... Checking Python ..."
 
-find ../../. -name "*.py" -and -not -path "*/third-party/*" \
+find ../../. -name "*.py" -and -not -path "*/thirdparty/*" \
   -and -not -path "*/build/*" \
   -and -not -path "*/dist/*" | xargs -I % sh -c \
   "pylint --rcfile=pylint.rcfile %;"

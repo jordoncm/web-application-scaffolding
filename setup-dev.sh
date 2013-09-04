@@ -24,10 +24,10 @@ if [[ "$CPUINFO" == *" lm "* ]]; then
   ARCH=64
 fi
 
-if [ ! -d "third-party" ]; then
-  mkdir third-party
+if [ ! -d "thirdparty" ]; then
+  mkdir thirdparty
 fi
-cd third-party
+cd thirdparty
 
 # Install node.js
 VERSION="v0.10.17"

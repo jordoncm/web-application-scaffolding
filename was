@@ -30,7 +30,7 @@ case "$1" in
     find ./scripts/run.d/ -name "*.sh" | sort | xargs -I % bash "%" "$@"
     ;;
   search)
-    grep -rni --exclude-dir=third-party \
+    grep -rni --exclude-dir=thirdparty \
       --exclude-dir=build --exclude-dir=dist --exclude-dir=.git $2 .
     ;;
   test)

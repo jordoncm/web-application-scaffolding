@@ -18,7 +18,7 @@ Third Party Code
 ----------------
 
 It is good practice to keep all third party code separated in some way from the
-rest of your application source. By default any folder named `third-party` in
+rest of your application source. By default any folder named `thirdparty` in
 this directory structure will be ingnored and left unchaged by any of the build
 steps. However these folders will get transfered to the distribution package
 unchanged on build. This allows you to isolate outside code and be

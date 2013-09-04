@@ -16,7 +16,7 @@ static/js/externs
 -----------------
 
 Keep all application extern definition Javascript files in this directory
-(there is also an externs folder available in `static/third-party`).  Each file
+(there is also an externs folder available in `static/thirdparty`). Each file
 with a `.js` extension will be identified to the compiler as an externs file.
 Extern definitions are an important part of compiling Javascript code; see:
 https://developers.google.com/closure/compiler/docs/api-tutorial3#externs
@@ -24,7 +24,7 @@ https://developers.google.com/closure/compiler/docs/api-tutorial3#externs
 Note About \_\_was\_\_.js Files
 -------------------------------
 
-These special files contain basic methods to make the Closure compiler function
+These special files contain basic methods to make the Closure Compiler function
 as expected. These mostly work out details to make the Closure Compiler
 function properly doing advanced optimization without requiring the Closure
 Library as well. See comments in thier source for details. Do not remove them

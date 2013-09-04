@@ -17,10 +17,10 @@ echo "... Building Distribution Files ..."
 cp -r ../../src ../../dist/default
 rm -rf ../../dist/default/static/css
 rm -rf ../../dist/default/static/js
-rm -rf ../../dist/default/static/third-party/externs
+rm -rf ../../dist/default/static/thirdparty/externs
 cp -r ../../build/css ../../dist/default/static/
 cp -r ../../build/js ../../dist/default/static/
-find ../../dist/default/. -name "readme.md" -and -not -path "*/third-party/*" \
+find ../../dist/default/. -name "readme.md" -and -not -path "*/thirdparty/*" \
   | xargs rm
 
 echo "... Building Application Archive ..."

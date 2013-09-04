@@ -1,4 +1,5 @@
 .vagrant
-third-party/*
+thirdparty/*
+!thirdparty/readme.md
 build
 dist

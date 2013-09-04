@@ -73,7 +73,7 @@ def build_javascript(debug = False):
     extra_args.append('__DEBUG__')
 
   externs = recurse_build_args(
-    '../../src/static/third-party/externs',
+    '../../src/static/thirdparty/externs',
     '--externs'
   )
   externs = externs + recurse_build_args(
@@ -88,7 +88,7 @@ def build_javascript(debug = False):
     if is_file and target.endswith('.js') and target != 'typedefs.js':
       dest = os.path.join(build_folder, target)
       command = [
-        'java', '-jar', '../../third-party/compiler-latest/compiler.jar',
+        'java', '-jar', '../../thirdparty/compiler-latest/compiler.jar',
         '--compilation_level', optimization_level,
         '--manage_closure_dependencies',
         '--process_closure_primitives',
