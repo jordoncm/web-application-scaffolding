@@ -5,3 +5,6 @@ cd `dirname $0`
 
 sudo apt-get install -y python-pip
 sudo pip install flask
+
+cd ../..
+cp -rf sample/* .
