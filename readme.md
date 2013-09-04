@@ -5,7 +5,7 @@ This project provides a basic set of tools, code and folder structure to
 develop a full web based application.
 
 The scaffolding selects a couple basic tools to help ease the process of
-compiling and deploying CSS nd Javascript for a production application. The
+compiling and deploying CSS and Javascript for a production application. The
 scaffolding was designed to be simple and easy to customize and extend;
 `readme.md` files can be found throughout the folder structure explaining the
 purpose of each part of the scaffolding.
@@ -46,8 +46,8 @@ Deploying the Scaffolding
 
 It is possible to just git clone or copy this repository and start customizing
 and build your application. However if you want to deploy a clean copy of this
-scaffolding to a new location, use `was clone TARGET`. See below for more
-details.
+scaffolding to a new location, use `was clone TARGET` from within the your copy
+of the scaffolding. See below for more details.
 
 was Command
 -----------
