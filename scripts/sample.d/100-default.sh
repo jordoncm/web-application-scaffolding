@@ -21,4 +21,4 @@ cd ../..
 if [ -f readme.md ]; then
   cp readme.md was.md
 fi
-cp -rf sample/* .
+cp -rpf sample/* .

@@ -12,3 +12,4 @@ cd `dirname $0`
 
 echo "... Running Application ..."
 cd ../../dist/default
+python app.py
