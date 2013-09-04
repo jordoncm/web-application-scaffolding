@@ -23,3 +23,10 @@ this directory structure will be ingnored and left unchaged by any of the build
 steps. However these folders will get transfered to the distribution package
 unchanged on build. This allows you to isolate outside code and be
 conscientious about its use in your application.
+
+--------------------------------------------------------------------------------
+
+Copyright (c) 2013 Jordon Mears.
+
+Web Application Scaffolding is made available under the MIT license.
+<http://opensource.org/licenses/MIT>

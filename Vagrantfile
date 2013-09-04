@@ -1,5 +1,10 @@
 # This is a simple Vagrant configuration to run the scaffolding within (if you
 # choose to do so).
+#
+# Copyright (c) 2013 Jordon Mears.
+#
+# Web Application Scaffolding is made available under the MIT license.
+# <http://opensource.org/licenses/MIT>
 
 Vagrant::Config.run do |config|
   # You can replace this box with any deb based box you may have around (i.e.

@@ -26,3 +26,10 @@ for script files is as follows:
   - 1*XX*-*name*.sh: Steps in the main execution of the task.
   - 0*XX*-postflight-*name*.sh: Used for postflight scripts. Steps to take
     after the default action has completed.
+
+--------------------------------------------------------------------------------
+
+Copyright (c) 2013 Jordon Mears.
+
+Web Application Scaffolding is made available under the MIT license.
+<http://opensource.org/licenses/MIT>

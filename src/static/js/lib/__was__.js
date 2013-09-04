@@ -1,3 +1,10 @@
+/*
+ * Copyright (c) 2013 Jordon Mears.
+ *
+ * Web Application Scaffolding is made available under the MIT license.
+ * <http://opensource.org/licenses/MIT>
+ */
+
 /**
  * @fileoverview Basics for making the compiler function as expected.
  *

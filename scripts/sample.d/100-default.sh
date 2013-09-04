@@ -3,6 +3,11 @@
 #
 # This action should really only be ran on an umodified scaffolding for
 # learning purposes; it can be destructive.
+#
+# Copyright (c) 2013 Jordon Mears.
+#
+# Web Application Scaffolding is made available under the MIT license.
+# <http://opensource.org/licenses/MIT>
 
 cd `dirname $0`
 

@@ -1,4 +1,4 @@
-WAS: static/js
+WAS: src/static/js
 ==============
 
 Keep all application Javascript files in this directory. Each of these files
@@ -29,3 +29,10 @@ as expected. These mostly work out details to make the Closure Compiler
 function properly doing advanced optimization without requiring the Closure
 Library as well. See comments in thier source for details. Do not remove them
 unless you knowwhat you are doing.
+
+--------------------------------------------------------------------------------
+
+Copyright (c) 2013 Jordon Mears.
+
+Web Application Scaffolding is made available under the MIT license.
+<http://opensource.org/licenses/MIT>

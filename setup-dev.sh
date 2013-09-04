@@ -6,6 +6,11 @@
 #
 # To reinstall any component of these base build tools, simply remove the
 # folders and download files for the given product and re-execute this script.
+#
+# Copyright (c) 2013 Jordon Mears.
+#
+# Web Application Scaffolding is made available under the MIT license.
+# <http://opensource.org/licenses/MIT>
 
 # It is likely you could comment out these lines and install these dependencies
 # manually and get this scaffolding working on Mac or non-Debian flavors of

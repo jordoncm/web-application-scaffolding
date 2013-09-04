@@ -143,4 +143,9 @@ source differently and skip steps like minification or compiling into the main
 source. Use custom build rules to handle this code by placing preflight and
 postflight scripts into the scaffolding workflow (see `scripts/readme.md`).
 
-TODO(jordoncm): Add licensing information.
+--------------------------------------------------------------------------------
+
+Copyright (c) 2013 Jordon Mears.
+
+Web Application Scaffolding is made available under the MIT license.
+<http://opensource.org/licenses/MIT>
