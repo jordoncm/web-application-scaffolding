@@ -49,9 +49,6 @@ and build your application. However if you want to deploy a clean copy of this
 scaffolding to a new location, use `was clone TARGET`. See below for more
 details.
 
-TODO(jordoncm): Create a sample readme.md file to deploy with a cloned
-scaffolding (instead of this one).
-
 was Command
 -----------
 
@@ -106,6 +103,15 @@ Options:
 
   - By default accepts same options as the `build` action.
 
+### was sample ###
+
+This command will copy a working sample project that you can build and run.
+Files are copied from the `sample` folder.
+
+WARNING: Deploying the sample using the `was sample` command could overwrite or
+destroy existing files in the scaffolding. This sample should only be used on
+empty scaffolding in order to learn the structure of the scaffolding.
+
 ### was search ###
 
 A simple `grep` alias to search the codebase. It will avoid `build`, `dist` and
@@ -139,4 +145,3 @@ postflight scripts into the scaffolding workflow (see `scripts/readme.md`).
 
 TODO(jordoncm): Move 'third-party' to a different name.
 TODO(jordoncm): Add licensing information.
-TODO(jordoncm): Move sample code and create sample action.
