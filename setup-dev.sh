@@ -15,57 +15,79 @@
 # It is likely you could comment out these lines and install these dependencies
 # manually and get this scaffolding working on Mac or non-Debian flavors of
 # Linux.
-sudo apt-get update
-sudo apt-get install -y default-jre pylint python-setuptools unzip
+if [ `uname` == 'Linux' ]; then
+  sudo apt-get update
+  sudo apt-get -y upgrade
+  sudo apt-get install -y openjdk-7-jre \
+    python-pip python-setuptools python-virtualenv \
+    unzip
+fi
+
+# It is assumed that the user has homebrew installed along with the JDK
+if [ `uname` == 'Darwin' ]; then
+  # Check for Homebrew on Mac machines
+  command -v brew >/dev/null 2>&1 || {
+    echo 2>&1 "This installation requires homebrew";
+    exit 1;
+  }
+  brew install wget
+  brew install python
+  pip install virtualenv
+fi
+
+# Mac already has the jre and unzip installed
 
 ################################################################################
 
 cd `dirname $0`
+SETUP_DIR=$PWD
+source config
+
+mkdir -p $WAS_DEPS
+
 PWD=`pwd`
 
-ARCH=32
+# This WILL error on a Macintosh, it can simply be ignored.
+ARCH=86
 CPUINFO=`grep flags /proc/cpuinfo`
 if [[ "$CPUINFO" == *" lm "* ]]; then
   ARCH=64
 fi
 
-if [ ! -d "thirdparty" ]; then
-  mkdir thirdparty
-fi
-cd thirdparty
+cd $WAS_DEPS
 
 # Install node.js
 VERSION="v0.10.17"
 FILE="node-$VERSION-linux-x$ARCH"
+if [ `uname` == 'Darwin' ]; then
+  FILE="node-$VERSION-darwin-x64"
+fi
 if [ ! -e "$FILE.tar.gz" ]; then
   wget http://nodejs.org/dist/$VERSION/$FILE.tar.gz
   tar -xzf $FILE.tar.gz
-  # TODO(jordoncm): This below runs the risk of stuffing the .bashrc file with
-  # the path updates more than once if node.js is ever removed and reinstalled.
-  echo "" >> ~/.bashrc
-  echo "PATH=\$PATH:$PWD/$FILE/bin" >> ~/.bashrc
-  echo "export PATH" >> ~/.bashrc
 fi
-
-# Always make sure node and npm are on the current sessions path.
-PATH=$PATH:$PWD/$FILE/bin
-export PATH
 
 # node.js and LESS are a bit of a beast and has to bring in a lot of stuff to
 # install. If this step errors you should be able to just re-execute this
 # script and it will re-attempt picking up from where it left off.
 
 # Install LESS.
-INSTALLED=`npm list -g --depth=0 2>/dev/null | grep less`
+INSTALLED=`$WAS_DEPS/$FILE/bin/npm list --depth=0 2>/dev/null | grep less`
 if [ -z "$INSTALLED" ]; then
-  npm install -g less
+  $WAS_DEPS/$FILE/bin/npm install less
 fi
 
 # Install the Closure compiler.
 if [ ! -e "compiler-latest.zip" ]; then
-  wget http://closure-compiler.googlecode.com/files/compiler-latest.zip
+  wget http://dl.google.com/closure-compiler/compiler-latest.zip
   unzip compiler-latest.zip -d compiler-latest
 fi
+
+if [ ! -d "py" ]; then
+  virtualenv py
+fi
+
+$WAS_DEPS/py/bin/pip install pylint
 
 # Install gflags.
 FILE="python-gflags-2.0"
@@ -73,7 +95,7 @@ if [ ! -e "$FILE.tar.gz" ]; then
   wget http://python-gflags.googlecode.com/files/$FILE.tar.gz
   tar -xzf $FILE.tar.gz
   cd $FILE
-  sudo python setup.py install
+  $WAS_DEPS/py/bin/python setup.py install
   cd ..
 fi
 
@@ -83,6 +105,6 @@ if [ ! -e "$FILE.tar.gz" ]; then
   wget http://closure-linter.googlecode.com/files/$FILE.tar.gz
   tar -xzf $FILE.tar.gz
   cd $FILE
-  sudo python setup.py install
+  $WAS_DEPS/py/bin/python setup.py install
   cd ..
 fi

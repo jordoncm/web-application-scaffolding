@@ -18,6 +18,16 @@ gflags.DEFINE_boolean(
   False,
   'If set will still process files but not obfuscate code.'
 )
+gflags.DEFINE_string(
+  'base',
+  '../..',
+  'The base path in which to place the build and dist folders.'
+)
+gflags.DEFINE_string(
+  'deps',
+  '../../thirdparty',
+  'The base path for scaffolding dependencies.'
+)
 
 def main(argv):
   """Executes the build."""
@@ -38,16 +48,17 @@ def main(argv):
     print 'Compiling in debug mode.'
 
   print '... Compiling LESS ...'
-  build_less(FLAGS.debug)
+  build_less(FLAGS.base, FLAGS.debug, FLAGS.deps)
   print '... Compiling Javascript ...'
-  build_javascript(FLAGS.debug)
+  build_javascript(FLAGS.base, FLAGS.debug, FLAGS.deps)
 
-def build_less(debug = False):
+def build_less(base, debug = False, deps = '../../thirdparty'):
   """Builds LESS files into compiled CSS."""
   src_folder = '../../src/static/css'
   targets = os.listdir(src_folder)
-  build_folder = '../../build/css'
+  build_folder = os.path.join(base, 'build/css')
   os.mkdir(build_folder)
+  command = os.path.join(deps, 'node_modules/less/bin/lessc')
   for target in targets:
     src = os.path.join(src_folder, target)
     if os.path.isfile(src):
@@ -56,15 +67,15 @@ def build_less(debug = False):
       # minification.
       if target.endswith('.less') or target.endswith('.css'):
         if debug:
-          subprocess.call(['lessc', src, dest])
+          subprocess.call([command, src, dest])
         else:
-          subprocess.call(['lessc', '--yui-compress', src, dest])
+          subprocess.call([command, '--yui-compress', src, dest])
 
-def build_javascript(debug = False):
+def build_javascript(base, debug = False, deps = '../../thirdparty'):
   """Compiles Javascript."""
   src_folder = '../../src/static/js'
   targets = os.listdir(src_folder)
-  build_folder = '../../build/js'
+  build_folder = os.path.join(base, 'build/js')
   os.mkdir(build_folder)
 
   extra_args = []
@@ -93,7 +104,7 @@ def build_javascript(debug = False):
     if is_file and target.endswith('.js') and target != 'typedefs.js':
       dest = os.path.join(build_folder, target)
       command = [
-        'java', '-jar', '../../thirdparty/compiler-latest/compiler.jar',
+        'java', '-jar', os.path.join(deps, 'compiler-latest/compiler.jar'),
         '--compilation_level', optimization_level,
         '--manage_closure_dependencies',
         '--process_closure_primitives',

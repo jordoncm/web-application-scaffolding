@@ -6,21 +6,22 @@
 # Web Application Scaffolding is made available under the MIT license.
 # <http://opensource.org/licenses/MIT>
 
-# Comma separated list of Javascript application namespaces.
-JS_NAMESPACE='foo'
-
+exec 0< /dev/tty
 cd `dirname $0`
+source ../../config
 
 echo "... Checking Python ..."
 
 find ../../. -name "*.py" -and -not -path "*/thirdparty/*" \
   -and -not -path "*/build/*" \
   -and -not -path "*/dist/*" | xargs -I % sh -c \
-  "pylint --rcfile=pylint.rcfile %;"
+  "$WAS_DEPS/py/bin/pylint --rcfile=pylint.rcfile %;"
 
 echo "... Checking LESS ..."
+PATH="$PATH:$WAS_DEPS/node-v0.10.17-linux-x64/bin"
+export PATH
 find ../../src/static/css -name "*.less" | xargs -I % sh -c \
-  "lessc --lint %;"
+  "$WAS_DEPS/node_modules/less/bin/lessc --lint %;"
 
 echo "... Checking Javascript ..."
 
@@ -28,7 +29,7 @@ if [ -z "$JS_NAMESPACE" ]; then
   echo "WARNING: Javascript application namespace is not set."
 fi
 
-gjslint \
+$WAS_DEPS/py/bin/gjslint \
   --check_html \
   --closurized_namespaces=$JS_NAMESPACE \
   --disable=2,6 \

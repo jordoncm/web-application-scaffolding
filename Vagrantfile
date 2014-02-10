@@ -9,7 +9,15 @@
 Vagrant::Config.run do |config|
   # You can replace this box with any deb based box you may have around (i.e.
   # Debian, Ubuntu, Mint, etc).
-  config.vm.box = 'debian-7.1.0-amd64'
+  config.vm.box = 'ubuntu-12.04-amd64'
+
+  # The url from where the 'config.vm.box' box will be fetched if it doesn't
+  # already exist on the user's system.
+  config.vm.box_url = [
+    'http://cloud-images.ubuntu.com',
+    'vagrant/precise/current',
+    'precise-server-cloudimg-amd64-vagrant-disk1.box'
+  ].join('/')
 
   # This makes symlinks in the shared /vagrant folder work correctly on
   # VirtualBox. In general avoid symlinks in code as they do not work right in

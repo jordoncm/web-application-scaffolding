@@ -6,9 +6,12 @@
 # Web Application Scaffolding is made available under the MIT license.
 # <http://opensource.org/licenses/MIT>
 
+exec 0< /dev/tty
 cd `dirname $0`
+source ../../config
 
-../../was build
+ARGS=`echo -n $@ | cut -c 4-`
+../../was build "$ARGS"
 
 echo "... Running Application ..."
-cd ../../dist/default
+cd $BUILD_BASE/dist/default
