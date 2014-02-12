@@ -19,6 +19,9 @@ find ../../. -name "*.py" -and -not -path "*/thirdparty/*" \
 
 echo "... Checking LESS ..."
 PATH="$PATH:$WAS_DEPS/node-v0.10.17-linux-x64/bin"
+if [ `uname` == 'Darwin' ]; then
+  PATH="$PATH:$WAS_DEPS/node-v0.10.17-darwin-x64/bin"
+fi
 export PATH
 find ../../src/static/css -name "*.less" | xargs -I % sh -c \
   "$WAS_DEPS/node_modules/less/bin/lessc --lint %;"

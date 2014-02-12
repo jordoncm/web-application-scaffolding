@@ -2,7 +2,8 @@
 # Setup the development environment.
 #
 # This script should likely work on any Linux flavor that is managed by an APT
-# based package manager (should be easy to modify for other non-deb flavors).
+# based package manager (should be easy to modify for other non-deb flavors)
+# and Mac.
 #
 # To reinstall any component of these base build tools, simply remove the
 # folders and download files for the given product and re-execute this script.
@@ -13,8 +14,7 @@
 # <http://opensource.org/licenses/MIT>
 
 # It is likely you could comment out these lines and install these dependencies
-# manually and get this scaffolding working on Mac or non-Debian flavors of
-# Linux.
+# manually and get this scaffolding working on non-Debian flavors of Linux.
 if [ `uname` == 'Linux' ]; then
   sudo apt-get update
   sudo apt-get -y upgrade
@@ -23,9 +23,10 @@ if [ `uname` == 'Linux' ]; then
     unzip
 fi
 
-# It is assumed that the user has homebrew installed along with the JDK
+# It is assumed that the user has homebrew installed along with the JDK. Mac
+# already has the jre and unzip installed.
 if [ `uname` == 'Darwin' ]; then
-  # Check for Homebrew on Mac machines
+  # Check for Homebrew on Mac machines.
   command -v brew >/dev/null 2>&1 || {
     echo 2>&1 "This installation requires homebrew";
     exit 1;
@@ -34,8 +35,6 @@ if [ `uname` == 'Darwin' ]; then
   brew install python
   pip install virtualenv
 fi
-
-# Mac already has the jre and unzip installed
 
 ################################################################################
 

@@ -31,15 +31,10 @@ To setup the development environment you can either execute `setup-dev.sh` on
 any Debian based machine (Debian, Ubuntu, Mint, etc) or use Vagrant to create
 virtual machine to contain your application.
 
-**NOTE for Vagrant**: You will need to look at the `Vagrantfile` and correct
-the `config.vm.box` to reference a valid box in your environment before
-executing `vagrant up`. Once the virtual machine is running you will still need
+**NOTE for Vagrant**: Once the virtual machine is running you will still need
 to execute `setup-dev.sh` within the virtual machine.
 
-**NOTE for Mac**: If you want to use this scaffolding on Mac, take a look at
-the top few lines of `setup-dev.sh`. Comment out the `apt-get` lines and as
-long as you install the matching packages (most of which OSX should already
-have) this should work fine.
+**NOTE for Mac**: This should on Mac as long as you have Homebrew working.
 
 Deploying the Scaffolding
 -------------------------
@@ -145,7 +140,7 @@ postflight scripts into the scaffolding workflow (see `scripts/readme.md`).
 
 --------------------------------------------------------------------------------
 
-Copyright (c) 2013 Jordon Mears.
+Copyright (c) 2013 - 2014 Jordon Mears.
 
 Web Application Scaffolding is made available under the MIT license.
 <http://opensource.org/licenses/MIT>

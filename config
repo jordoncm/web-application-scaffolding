@@ -22,7 +22,7 @@ JS_NAMESPACE=""
 # Build and dist base.
 BUILD_BASE="/home/$USER/.was"
 
-# Make sure this executes correctly on a Mac
+# Make sure this executes correctly on a Mac.
 if [ `uname` == 'Darwin' ]; then
   WAS_DEPS="/Users/$USER/.was/deps"
   BUILD_BASE="/Users/$USER/.was"
