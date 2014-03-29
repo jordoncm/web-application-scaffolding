@@ -35,7 +35,7 @@ fi
 $WAS_DEPS/py/bin/gjslint \
   --check_html \
   --closurized_namespaces=$JS_NAMESPACE \
-  --disable=2,6 \
+  --disable=2,6,233 \
   --jslint_error=all \
   --recurse=../../src/static/js \
   --strict \

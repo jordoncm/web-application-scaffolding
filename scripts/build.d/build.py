@@ -52,7 +52,7 @@ def main(argv):
   print '... Compiling Javascript ...'
   build_javascript(FLAGS.base, FLAGS.debug, FLAGS.deps)
 
-def build_less(base, debug = False, deps = '../../thirdparty'):
+def build_less(base, debug=False, deps='../../thirdparty'):
   """Builds LESS files into compiled CSS."""
   src_folder = '../../src/static/css'
   targets = os.listdir(src_folder)
@@ -69,9 +69,9 @@ def build_less(base, debug = False, deps = '../../thirdparty'):
         if debug:
           subprocess.call([command, src, dest])
         else:
-          subprocess.call([command, '--yui-compress', src, dest])
+          subprocess.call([command, '--clean-css', src, dest])
 
-def build_javascript(base, debug = False, deps = '../../thirdparty'):
+def build_javascript(base, debug=False, deps='../../thirdparty'):
   """Compiles Javascript."""
   src_folder = '../../src/static/js'
   targets = os.listdir(src_folder)
@@ -85,8 +85,7 @@ def build_javascript(base, debug = False, deps = '../../thirdparty'):
     optimization_level = 'SIMPLE_OPTIMIZATIONS'
     extra_args.append('--formatting')
     extra_args.append('PRETTY_PRINT')
-    extra_args.append('--define')
-    extra_args.append('__DEBUG__')
+    extra_args.append('--define=\'__DEBUG__=true\'')
 
   externs = recurse_build_args(
     '../../src/static/thirdparty/externs',
@@ -114,14 +113,14 @@ def build_javascript(base, debug = False, deps = '../../thirdparty'):
       ] + extra_args + externs + js_args
       subprocess.call(command)
 
-def recurse_build_args(base_path, arg_name = '--js', args = None):
+def recurse_build_args(base_path, arg_name='--js'):
   """Recurses a directory structure generating a list of Closure arguments."""
-  args = [] if args is None else args
+  args = []
   files = os.listdir(base_path)
   for filename in files:
     path = os.path.join(base_path, filename)
     if os.path.isdir(path):
-      args = args + recurse_build_args(base_path, arg_name, args)
+      args = args + recurse_build_args(path, arg_name)
     elif os.path.isfile(path) and filename.endswith('.js'):
       args.append(arg_name)
       args.append(path)

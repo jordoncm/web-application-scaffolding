@@ -4,6 +4,7 @@
  * Web Application Scaffolding is made available under the MIT license.
  * <http://opensource.org/licenses/MIT>
  */
+
 /**
  * @fileoverview Typedefs for the application.
  *
@@ -14,3 +15,5 @@
  * parameters to a method. See:
  * https://developers.google.com/closure/compiler/docs/js-for-compiler
  */
+
+var typedefs = {};
