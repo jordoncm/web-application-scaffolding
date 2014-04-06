@@ -68,17 +68,6 @@ Options:
 
 Cleans the `build` and `dist` files out of the project.
 
-### was clone ###
-
-Copies the current scaffolding (and application) to a new location. Use this to
-stage the scaffolding into a new project.
-
-Usage: `was clone LOCATION`
-
-Example: `was clone foo`
-
-NOTE: The target location should not already exist.
-
 ### was deploy ###
 
 Deploys the application into production. This is only a blank stub and would
@@ -97,15 +86,6 @@ have to be implemented for each project manually.
 Options:
 
   - By default accepts same options as the `build` action.
-
-### was sample ###
-
-This command will copy a working sample project that you can build and run.
-Files are copied from the `sample` folder.
-
-WARNING: Deploying the sample using the `was sample` command could overwrite or
-destroy existing files in the scaffolding. This sample should only be used on
-empty scaffolding in order to learn the structure of the scaffolding.
 
 ### was search ###
 

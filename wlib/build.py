@@ -1,64 +1,59 @@
-#!/usr/bin/which python
-#
-# Copyright (c) 2013 Jordon Mears.
+# Copyright (c) 2013 - 2014 Jordon Mears.
 #
 # Web Application Scaffolding is made available under the MIT license.
 # <http://opensource.org/licenses/MIT>
-"""Compiles the LESS and Javascript code."""
+"""Build methods for the scaffolding."""
 
 import os
 import subprocess
-import sys
 
-import gflags
+import invoke
 
-FLAGS = gflags.FLAGS
-gflags.DEFINE_boolean(
-  'debug',
-  False,
-  'If set will still process files but not obfuscate code.'
-)
-gflags.DEFINE_string(
-  'base',
-  '../..',
-  'The base path in which to place the build and dist folders.'
-)
-gflags.DEFINE_string(
-  'deps',
-  '../../thirdparty',
-  'The base path for scaffolding dependencies.'
-)
-
-def main(argv):
-  """Executes the build."""
-
-  # If script is executed from the main 'was' script we need to drop the action
-  # option in order for gflags to process the options correctly.
-  if argv[1] == 'build':
-    del argv[1]
-
-  # Parse the command line flags.
+def mkdir(path):
+  """Create a folder at the given target."""
   try:
-    argv = FLAGS(argv)
-  except gflags.FlagsError, error:
-    print '%s\\nUsage: %s ARGS\\n%s' % (error, sys.argv[0], FLAGS)
-    sys.exit(1)
+    os.mkdir(path)
+  except OSError, e:  # pylint: disable=invalid-name
+    # Don't error if the file already exists.
+    if e.errno != 17:
+      raise e
 
-  if FLAGS.debug:
-    print 'Compiling in debug mode.'
+@invoke.task
+def mkdir_build(**kwargs):  # pylint: disable=unused-argument
+  """Creates the build folder."""
+  mkdir(os.path.join(os.environ.get('WAS_BUILD_BASE'), 'build'))
 
-  print '... Compiling LESS ...'
-  build_less(FLAGS.base, FLAGS.debug, FLAGS.deps)
-  print '... Compiling Javascript ...'
-  build_javascript(FLAGS.base, FLAGS.debug, FLAGS.deps)
+@invoke.task
+def mkdir_dist(**kwargs):  # pylint: disable=unused-argument
+  """Creates the build folder."""
+  mkdir(os.path.join(os.environ.get('WAS_BUILD_BASE'), 'dist'))
 
-def build_less(base, debug=False, deps='../../thirdparty'):
+@invoke.task
+def collect_dist(**kwargs):  # pylint: disable=unused-argument
+  """Collects artifacts out of src and build and places them in dist."""
+  base = os.environ.get('WAS_BUILD_BASE')
+  # This is a little wasteful but works fine.
+  invoke.run('cp -r src ' + base + '/dist/default')
+  invoke.run('rm -rf ' + base + '/dist/default/static/css')
+  invoke.run('rm -rf ' + base + '/dist/default/static/js')
+  invoke.run('rm -rf ' + base + '/dist/default/static/thirdparty/externs')
+  invoke.run('cp -r ' + base + '/build/css ' + base + '/dist/default/static/')
+  invoke.run('cp -r ' + base + '/build/js ' + base + '/dist/default/static/')
+  invoke.run(' '.join([
+    'find ' + base + '/dist/default/.',
+    '-name "readme.md"',
+    '-and -not -path "*/thirdparty/*"',
+    '| xargs rm'
+  ]))
+
+@invoke.task
+def lessc(debug=False):
   """Builds LESS files into compiled CSS."""
-  src_folder = '../../src/static/css'
+  base = os.environ.get('WAS_BUILD_BASE')
+  src_folder = 'src/static/css'
   targets = os.listdir(src_folder)
   build_folder = os.path.join(base, 'build/css')
   os.mkdir(build_folder)
-  command = os.path.join(deps, 'node_modules/less/bin/lessc')
   for target in targets:
     src = os.path.join(src_folder, target)
     if os.path.isfile(src):
@@ -67,13 +62,16 @@ def build_less(base, debug=False, deps='../../thirdparty'):
       # minification.
       if target.endswith('.less') or target.endswith('.css'):
         if debug:
-          subprocess.call([command, src, dest])
+          subprocess.call(['lessc', src, dest])
         else:
-          subprocess.call([command, '--clean-css', src, dest])
+          subprocess.call(['lessc', '--clean-css', src, dest])
 
-def build_javascript(base, debug=False, deps='../../thirdparty'):
+@invoke.task
+def javascript(debug=False):
   """Compiles Javascript."""
-  src_folder = '../../src/static/js'
+  base = os.environ.get('WAS_BUILD_BASE')
+  deps = os.environ.get('WAS_DEPS')
+  src_folder = 'src/static/js'
   targets = os.listdir(src_folder)
   build_folder = os.path.join(base, 'build/js')
   os.mkdir(build_folder)
@@ -88,7 +86,7 @@ def build_javascript(base, debug=False, deps='../../thirdparty'):
     extra_args.append('--define=\'__DEBUG__=true\'')
 
   externs = recurse_build_args(
-    '../../src/static/thirdparty/externs',
+    'src/static/thirdparty/externs',
     '--externs'
   )
   externs = externs + recurse_build_args(
@@ -107,7 +105,7 @@ def build_javascript(base, debug=False, deps='../../thirdparty'):
         '--compilation_level', optimization_level,
         '--manage_closure_dependencies',
         '--process_closure_primitives',
-        '--js', '../../src/static/js/typedefs.js',
+        '--js', 'src/static/js/typedefs.js',
         '--js', src,
         '--js_output_file', dest
       ] + extra_args + externs + js_args
@@ -126,6 +124,3 @@ def recurse_build_args(base_path, arg_name='--js'):
       args.append(path)
 
   return args
-
-if __name__ == '__main__':
-  main(sys.argv)

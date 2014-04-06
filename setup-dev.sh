@@ -8,7 +8,7 @@
 # To reinstall any component of these base build tools, simply remove the
 # folders and download files for the given product and re-execute this script.
 #
-# Copyright (c) 2013 Jordon Mears.
+# Copyright (c) 2013 - 2014 Jordon Mears.
 #
 # Web Application Scaffolding is made available under the MIT license.
 # <http://opensource.org/licenses/MIT>
@@ -40,7 +40,7 @@ fi
 
 cd `dirname $0`
 SETUP_DIR=$PWD
-source config
+source ./was.cfg
 
 mkdir -p $WAS_DEPS
 
@@ -56,13 +56,12 @@ fi
 cd $WAS_DEPS
 
 # Install node.js
-VERSION="v0.10.17"
-FILE="node-$VERSION-linux-x$ARCH"
+FILE="node-$NODE_VERSION-linux-x$ARCH"
 if [ `uname` == 'Darwin' ]; then
-  FILE="node-$VERSION-darwin-x64"
+  FILE="node-$NODE_VERSION-darwin-x64"
 fi
 if [ ! -e "$FILE.tar.gz" ]; then
-  wget http://nodejs.org/dist/$VERSION/$FILE.tar.gz
+  wget http://nodejs.org/dist/$NODE_VERSION/$FILE.tar.gz
   tar -xzf $FILE.tar.gz
 fi
 
@@ -86,6 +85,7 @@ if [ ! -d "py" ]; then
   virtualenv py
 fi
 
+$WAS_DEPS/py/bin/pip install invoke
 $WAS_DEPS/py/bin/pip install pylint
 
 # Install gflags.

@@ -37,7 +37,7 @@ Vagrant::Config.run do |config|
   config.vm.customize ['modifyvm', :id, '--memory', 2048]
 
   # List of ports to forward to the host.
-  config.vm.forward_port 5000, 5000
+  # config.vm.forward_port 5000, 5000
 
   # Execute a script to configure build environment.
   # NOTE: This is currently disabled as I have been having issues with vagrant
