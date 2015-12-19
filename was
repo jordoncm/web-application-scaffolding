@@ -1,0 +1,1069 @@
+#!/usr/bin/env python
+# Copyright (c) 2013 - 2015 Jordon Mears.
+#
+# Web Application Scaffolding is made available under the MIT license.
+# <http://opensource.org/licenses/MIT>
+"""Web App Scaffolding
+
+This self contained script provides a framework for building, compiling,
+running and deploying web applications.
+"""
+
+################################################################################
+################################################################################
+####    NOTE: ALL CUSTOMIZATIONS SHOULD BE AT THE BOTTOM OF THIS FILE!!!    ####
+################################################################################
+################################################################################
+
+# pylint: disable=too-many-lines
+
+import os
+import platform
+import shutil
+import subprocess
+import sys
+
+HAS_PIP = True
+try:
+  import pip  # pylint: disable=wrong-import-position
+except ImportError:
+  HAS_PIP = False
+
+
+def install_base_dep(package, *args):
+  """Prompt the user to install missing dependency."""
+  print 'Base dependency missing: %s' % (package)
+  if not HAS_PIP:
+    print 'ERROR: pip is missing, cannot install base dependencies.'
+    exit(1)
+  result = None
+  while result not in ['Y', 'y', 'N', 'n']:
+    result = raw_input('Would you like to install? (y/n): ')
+  if result in ['Y', 'y']:
+    pip.main(['install', package] + list(args))
+  else:
+    print 'ERROR: Base dependency is missing, cannot proceed.'
+    exit(1)
+
+try:
+  import invoke  # pylint: disable=wrong-import-position
+except ImportError:
+  install_base_dep('invoke==dev', '--allow-unverified', 'invoke')
+  import invoke  # pylint: disable=wrong-import-position
+
+################################################################################
+ARCH = '86'
+if platform.architecture()[0] == '64bit':
+  ARCH = '64'
+CWD = os.getcwd()
+
+NODE_VERSION = 'v4.2.3'
+NODE_FILE = "node-%s-linux-x%s" % (NODE_VERSION, ARCH)
+NODE_URL = 'http://nodejs.org/dist/%s/%s.tar.gz' % (NODE_VERSION, NODE_FILE)
+
+CLOSURE_COMPILER_VERSION = 'latest'
+CLOSURE_COMPILER_FILE = 'compiler-%s' % (CLOSURE_COMPILER_VERSION)
+CLOSURE_COMPILER_URL = 'http://dl.google.com/closure-compiler/%s.zip' % (
+    CLOSURE_COMPILER_FILE
+)
+
+GFLAGS_VERSION = '2.0'
+GFLAGS_FILE = 'python-gflags-%s' % (GFLAGS_VERSION)
+GFLAGS_URL = 'https://github.com/google/python-gflags/archive/%s.zip' % (
+    GFLAGS_FILE
+)
+
+CLOSURE_LINTER_VERSION = '2.3.19'
+CLOSURE_LINTER_FILE = 'v%s' % (CLOSURE_LINTER_VERSION)
+CLOSURE_LINTER_URL = 'https://github.com/google/closure-linter/archive/%s.zip' % (
+    CLOSURE_LINTER_FILE
+)
+################################################################################
+
+NS = invoke.Collection()
+
+
+def find(name, path='.', exclude_paths=None):
+  """Uses the find command to build a file list."""
+  if exclude_paths is None:
+    exclude_paths = []
+  result = subprocess.check_output(' '.join([
+      'find %s -name "%s"' % (path, name),
+  ] + ['-and -not -path "%s"' % i for i in exclude_paths]), shell=True)
+  if result:
+    return result.split()
+  else:
+    return []
+
+
+def run(command):
+  """Shorthand method to run a command and return the result."""
+  if not isinstance(command, list):
+    command = [command]
+  return invoke.run(' '.join(command))
+
+################################################################################
+#
+# init: Tasks to intialize components of a project.
+#
+################################################################################
+
+NS_INIT = invoke.Collection('init')
+NS.add_collection(NS_INIT)
+
+GITIGNORE_TEXT = '''
+.vagrant*
+thirdparty/*
+!thirdparty/readme.md
+build
+dist
+
+*.pyc
+.idea/*
+.DS_Store
+
+npm-debug.log
+'''.lstrip()
+
+VAGRANT_TEXT = '''
+Vagrant::Config.run do |config|
+  # You can replace this box with any deb based box you may have around (i.e.
+  # Debian, Ubuntu, Mint, etc).
+  config.vm.box = 'ubuntu-12.04-amd64'
+
+  # The url from where the 'config.vm.box' box will be fetched if it doesn't
+  # already exist on the user's system.
+  config.vm.box_url = [
+    'http://cloud-images.ubuntu.com',
+    'vagrant/precise/current',
+    'precise-server-cloudimg-amd64-vagrant-disk1.box'
+  ].join('/')
+
+  # This makes symlinks in the shared /vagrant folder work correctly on
+  # VirtualBox. In general avoid symlinks in code as they do not work right in
+  # Windows hosts.
+  config.vm.customize [
+    'setextradata',
+    :id,
+    'VBoxInternal2/SharedFoldersEnableSymlinksCreate/v-root',
+    '1'
+  ]
+
+  # This causes VirtualBox to proxy DNS into the VM otherwise lookups will
+  # fail.
+  config.vm.customize ['modifyvm', :id, '--natdnshostresolver1', 'on']
+
+  # RAM for the VM.
+  config.vm.customize ['modifyvm', :id, '--memory', 2048]
+
+  # List of ports to forward to the host.
+  # config.vm.forward_port 5000, 5000
+
+  # Execute a script to configure build environment.
+  # NOTE: This is currently disabled as I have been having issues with vagrant
+  # up exiting cleaning after running a shell script. Run this manually to
+  # install the base environment (this only needs ran once).
+  # config.vm.provision :shell, :path => 'setup-dev.sh'
+end
+'''.lstrip()
+
+JS_TYPEDEFS_TEXT = '''
+/**
+ * @fileoverview Typedefs for the application.
+ *
+ * Typedefs are structured definitions of complex Javascript objects that are
+ * usually passed as parameters to methods. Defining these allows the linter
+ * and compiler to do type checking parameters passed to methods that are not
+ * primative types. Can be handy in preventing errors based on passing bad
+ * parameters to a method. See:
+ * https://developers.google.com/closure/compiler/docs/js-for-compiler
+ */
+
+var typedefs = {};
+'''.lstrip()
+
+JS_EXTERNS_TEXT = '''
+/**
+ * @fileoverview A default set of extern definitions for the Closure compiler.
+ * @externs
+ */
+
+
+/**
+ * @type {Object.<string, function>}
+ */
+var console = {};
+
+
+/**
+ * @type {function}
+ */
+console.debug = function() {};
+
+
+/**
+ * @type {function}
+ */
+console.dir = function() {};
+
+
+/**
+ * @type {function}
+ */
+console.error = function() {};
+
+
+/**
+ * @type {function}
+ */
+console.group = function() {};
+
+
+/**
+ * @type {function}
+ */
+console.groupCollapsed = function() {};
+
+
+/**
+ * @type {function}
+ */
+console.groupEnd = function() {};
+
+
+/**
+ * @type {function}
+ */
+console.info = function() {};
+
+
+/**
+ * @type {function}
+ */
+console.log = function() {};
+
+
+/**
+ * @type {function}
+ */
+console.profile = function() {};
+
+
+/**
+ * @type {function}
+ */
+console.profileEnd = function() {};
+
+
+/**
+ * @type {function}
+ */
+console.time = function() {};
+
+
+/**
+ * @type {function}
+ */
+console.timeEnd = function() {};
+
+
+/**
+ * @type {function}
+ */
+console.trace = function() {};
+
+
+/**
+ * @type {function}
+ */
+console.warn = function() {};
+'''.lstrip()
+
+JS_LIB_TEXT = '''
+/**
+ * @fileoverview Basics for making the compiler function as expected.
+ *
+ * In general you should not add to or change this file unless you know what
+ * you are doing.
+ */
+
+goog.provide('__was__');
+
+
+/**
+ * A magic constant to help the compiler to know whether or not to strip calls
+ * to 'console'.
+ *
+ * @define {boolean} This value is set by the compiler at runtime.
+ */
+var __DEBUG__ = false;
+
+if(!__DEBUG__) {
+  /**
+   * @type {Object.<string, function>}
+   */
+  var console = {};
+
+
+  /**
+   * @type {function}
+   */
+  console.debug = function() {};
+
+
+  /**
+   * @type {function}
+   */
+  console.dir = function() {};
+
+
+  /**
+   * @type {function}
+   */
+  console.error = function() {};
+
+
+  /**
+   * @type {function}
+   */
+  console.group = function() {};
+
+
+  /**
+   * @type {function}
+   */
+  console.groupCollapsed = function() {};
+
+
+  /**
+   * @type {function}
+   */
+  console.groupEnd = function() {};
+
+
+  /**
+   * @type {function}
+   */
+  console.info = function() {};
+
+
+  /**
+   * @type {function}
+   */
+  console.log = function() {};
+
+
+  /**
+   * @type {function}
+   */
+  console.profile = function() {};
+
+
+  /**
+   * @type {function}
+   */
+  console.profileEnd = function() {};
+
+
+  /**
+   * @type {function}
+   */
+  console.time = function() {};
+
+
+  /**
+   * @type {function}
+   */
+  console.timeEnd = function() {};
+
+
+  /**
+   * @type {function}
+   */
+  console.trace = function() {};
+
+
+  /**
+   * @type {function}
+   */
+  console.warn = function() {};
+}
+
+
+/**
+ * Export a symbol out of the compiler.
+ *
+ * This is a replacement for goog.exportSymbol. Did not want to require the
+ * entire Closure library for a simple method to make properties available
+ * outside of the compilers renaming.
+ *
+ * @param {string} ns The full namespace path to register the given object to.
+ * @param {Object} obj The object to export.
+ */
+__was__.exportSymbol = function(ns, obj) {
+  var parts = ns.split('.');
+  var cur = window;
+
+  if(!(parts[0] in cur) && cur.execScript) {
+    cur.execScript('var ' + parts[0]);
+  }
+
+  for(var part; parts.length && (part = parts.shift());) {
+    if(!parts.length && obj !== undefined) {
+      // Last part and we have an object; use it.
+      cur[part] = obj;
+    } else if(cur[part]) {
+      cur = cur[part];
+    } else {
+      cur = cur[part] = {};
+    }
+  }
+};
+'''.lstrip()
+
+
+class Init(object):
+  """Support methods for initialization."""
+
+  @staticmethod
+  def create_folders(paths):
+    """Create a list of folders if they don't already exist."""
+    for path in paths:
+      if not os.path.isdir(os.path.join(CWD, path)):
+        os.mkdir(os.path.join(CWD, path))
+
+  @staticmethod
+  def write_file(path, text):
+    """Write a given file path with the provided text."""
+    # TODO(jordoncm): Add an option to overwrite files.
+    if not os.path.isfile(path):
+      with open(path, 'w') as f:  # pylint: disable=invalid-name
+        f.write(text)
+
+
+@invoke.task
+def init_folders():
+  """Create the basic project folder structure."""
+  Init.create_folders([
+      'src',
+      'src/static',
+      'src/static/thirdparty',
+      'src/thirdparty',
+      'thirdparty'
+  ])
+
+NS_INIT.add_task(init_folders, 'folders')
+
+
+@invoke.task
+def init_gitignore():
+  """Create a boilerplate .gitignore."""
+  Init.write_file('.gitignore', GITIGNORE_TEXT)
+
+NS_INIT.add_task(init_gitignore, 'gitignore')
+
+
+@invoke.task
+def init_vagrant():
+  """Create a boilerplate Vagrantfile."""
+  Init.write_file('Vagrantfile', VAGRANT_TEXT)
+
+NS_INIT.add_task(init_vagrant, 'vagrant')
+
+
+@invoke.task(pre=[init_folders])
+def init_css():
+  """Create the basic css folder structure."""
+  Init.create_folders([
+      'src/static/css',
+      'src/static/css/lib'
+  ])
+
+NS_INIT.add_task(init_css, 'css')
+
+
+@invoke.task(pre=[init_folders])
+def init_js():
+  """Create the basic js folder structure."""
+  Init.create_folders([
+      'src/static/js',
+      'src/static/js/externs',
+      'src/static/js/lib',
+      'src/static/thirdparty/externs'
+  ])
+
+  Init.write_file('src/static/js/typedefs.js', JS_TYPEDEFS_TEXT)
+  Init.write_file('src/static/js/externs/__was__.js', JS_EXTERNS_TEXT)
+  Init.write_file('src/static/js/lib/__was__.js', JS_LIB_TEXT)
+
+NS_INIT.add_task(init_js, 'js')
+
+################################################################################
+#
+# deps: Installs scaffolding and project dependencies.
+#
+################################################################################
+
+NS_DEPS = invoke.Collection('deps')
+NS.add_collection(NS_DEPS)
+
+
+@invoke.task(pre=[init_folders])
+def deps_nodejs():
+  """Installs Node.js."""
+  os.chdir('thirdparty')
+  if not os.path.isfile('%s.tar.gz' % (NODE_FILE)):
+    run(['wget', NODE_URL])
+    run(['tar', '-xzf', '%s.tar.gz' % (NODE_FILE)])
+  os.chdir('..')
+
+NS_DEPS.add_task(deps_nodejs, 'nodejs')
+
+
+@invoke.task(pre=[init_folders, deps_nodejs])
+def deps_less():
+  """Installs Less.js"""
+  os.chdir('thirdparty')
+  result = invoke.run(' '.join([
+      '%s/bin/npm' % (NODE_FILE),
+      'list',
+      '--depth=0'
+  ]), hide=True)
+  if result.stdout.find('less') == -1:
+    run(['%s/bin/npm' % (NODE_FILE), 'install', 'less'])
+
+  result = invoke.run(' '.join([
+      '%s/bin/npm' % (NODE_FILE),
+      'list',
+      '--depth=0'
+  ]), hide=True)
+  if result.stdout.find('less-plugin-clean-css') == -1:
+    run(['%s/bin/npm' % (NODE_FILE), 'install', 'less-plugin-clean-css'])
+  os.chdir('..')
+
+NS_DEPS.add_task(deps_less, 'less')
+
+
+@invoke.task
+def deps_java():
+  """Test if a Java runtime is available."""
+  # TODO(jordoncm): We do not try to install a local copy of Java. Maybe change
+  #     this in the future.
+  run(['java', '-version'])
+
+NS_DEPS.add_task(deps_java, 'java')
+
+
+@invoke.task
+def deps_unzip():
+  """Test if unzip is available."""
+  run('which unzip')
+
+
+NS_DEPS.add_task(deps_unzip, 'unzip')
+
+
+@invoke.task(pre=[init_folders, deps_java, deps_unzip])
+def deps_closure():
+  """Installs the Closure compiler."""
+  os.chdir('thirdparty')
+  if not os.path.isfile('%s.zip' % (CLOSURE_COMPILER_FILE)):
+    run(['wget', CLOSURE_COMPILER_URL])
+    run([
+        'unzip',
+        '%s.zip' % (CLOSURE_COMPILER_FILE),
+        '-d',
+        CLOSURE_COMPILER_FILE
+    ])
+  os.chdir('..')
+
+NS_DEPS.add_task(deps_closure, 'closure')
+
+
+@invoke.task
+def deps_pylint():
+  """Installs pylint."""
+  try:
+    import pylint  # pylint: disable=wrong-import-position
+  except ImportError:
+    if not HAS_PIP:
+      print 'ERROR: pip is missing, cannot install base dependencies.'
+      exit(1)
+    else:
+      pip.main(['install', 'pylint'])
+
+NS_DEPS.add_task(deps_pylint, 'pylint')
+
+
+@invoke.task(pre=[init_folders, deps_unzip])
+def deps_gflags():
+  """Installs GFLAGS for Python."""
+  os.chdir('thirdparty')
+  if not os.path.isfile('%s.zip' % (GFLAGS_FILE)):
+    run(['wget', GFLAGS_URL])
+    run(['unzip', '%s.zip' % (GFLAGS_FILE)])
+    os.chdir('python-gflags-%s' % (GFLAGS_FILE))
+    run(['python', 'setup.py', 'install'])
+    os.chdir('..')
+  os.chdir('..')
+
+NS_DEPS.add_task(deps_gflags, 'gflags')
+
+
+@invoke.task(pre=[init_folders, deps_unzip, deps_gflags])
+def deps_closure_linter():
+  """Installs the Closure linter."""
+  os.chdir('thirdparty')
+  if not os.path.isfile('%s.zip' % (CLOSURE_LINTER_FILE)):
+    run(['wget', CLOSURE_LINTER_URL])
+    run(['unzip', '%s.zip' % (CLOSURE_LINTER_FILE)])
+    os.chdir('closure-linter-%s' % (CLOSURE_LINTER_VERSION))
+    run(['python', 'setup.py', 'install'])
+    os.chdir('..')
+  os.chdir('..')
+
+NS_DEPS.add_task(deps_closure_linter, 'closure_linter')
+
+################################################################################
+#
+# search: Searches the codebase ignoring scaffolding files and folders.
+#
+################################################################################
+
+
+@invoke.task
+def search(needle):
+  """Searches the codebase ignoring scaffolding files and folders."""
+  run([
+      'grep',
+      '-rni',
+      '--exclude-dir=thirdparty',
+      '--exclude-dir=build',
+      '--exclude-dir=dist',
+      '--exclude-dir=.git',
+      '--color=always',
+      needle,
+      '.'
+  ])
+
+NS.add_task(search)
+
+################################################################################
+#
+# lint: Lints the codebase ignoring scaffolding files and folders.
+#
+################################################################################
+
+NS_LINT = invoke.Collection('lint')
+NS.add_collection(NS_LINT)
+
+
+@invoke.task(pre=[init_css, deps_less])
+def lint_less():
+  """Runs Less.js linter."""
+  files = find('*.less', './src/static/css')
+  if files:
+    invoke.run(' '.join([
+        'thirdparty/node_modules/.bin/lessc',
+        '--lint'
+    ] + files), warn=True)
+  else:
+    print 'No LESS files to lint.'
+
+NS_LINT.add_task(lint_less, 'less')
+
+
+@invoke.task(pre=[init_folders, deps_pylint])
+def lint_pylint():
+  """Runs pylint across Python in the application."""
+  files = find('*.py', exclude_paths=[
+      '*/thirdparty/*',
+      '*/build/*',
+      '*/dist/*'
+  ])
+  invoke.run(' '.join([
+      'pylint',
+      '--indent-string="  "',
+      '--max-line-length=80',
+      '--msg-template="{C}:{line:3d},{column:2d}: {msg} ({symbol}) {path}"',
+      '--output-format=colorized',
+      '--reports=no'
+  ] + files), warn=True)
+
+NS_LINT.add_task(lint_pylint, 'pylint')
+
+
+@invoke.task(pre=[init_js, deps_closure_linter])
+def lint_gjslint():
+  """Runs Closure linter across Javascript in the application."""
+  if JS_NAMESPACE == '':
+    print 'WARNING: Javascript application namespace is not set.'
+  invoke.run(' '.join([
+      'gjslint',
+      '--check_html',
+      '--closurized_namespaces=%s' % (JS_NAMESPACE),
+      '--disable=2,6,233',
+      '--jslint_error=all',
+      '--recurse=src/static/js',
+      '--strict',
+      '--unix_mode'
+  ]), warn=True)
+
+NS_LINT.add_task(lint_gjslint, 'gjslint')
+
+################################################################################
+#
+# clean: Cleans the build.
+#
+################################################################################
+
+NS_CLEAN = invoke.Collection('clean')
+NS.add_collection(NS_CLEAN)
+
+@invoke.task
+def clean_build():
+  """Removes the build folder."""
+  path = 'build'
+  if os.path.isdir(path):
+    shutil.rmtree(path)
+
+NS_CLEAN.add_task(clean_build, 'build')
+
+
+@invoke.task
+def clean_dist():
+  """Removes the dist folder."""
+  path = 'dist'
+  if os.path.isdir(path):
+    shutil.rmtree(path)
+
+NS_CLEAN.add_task(clean_dist, 'dist')
+
+################################################################################
+#
+# build:
+#
+################################################################################
+
+NS_BUILD = invoke.Collection('build')
+NS.add_collection(NS_BUILD)
+
+
+class Build(object):
+  """Support methods for build."""
+
+  @staticmethod
+  def mkdir(path):
+    """Create a folder at the given target."""
+    try:
+      os.mkdir(path)
+    except OSError, e:  # pylint: disable=invalid-name
+      # Don't error if the file already exists.
+      if e.errno != 17:
+        raise e
+
+  @staticmethod
+  def recurse_build_args(base_path, arg_name='--js'):
+    """Recurses a directory structure generating a list of Closure arguments."""
+    args = []
+    files = os.listdir(base_path)
+    for filename in files:
+      path = os.path.join(base_path, filename)
+      if os.path.isdir(path):
+        args = args + Build.recurse_build_args(path, arg_name)
+      elif os.path.isfile(path) and filename.endswith('.js'):
+        args.append(arg_name)
+        args.append(path)
+
+    return args
+
+
+@invoke.task
+def build_mkdir_build():
+  """Creates the build folder."""
+  Build.mkdir('build')
+
+NS_BUILD.add_task(build_mkdir_build, 'mkdir_build')
+
+
+@invoke.task
+def build_mkdir_dist():
+  """Creates the dist folder."""
+  Build.mkdir('dist')
+
+NS_BUILD.add_task(build_mkdir_dist, 'mkdir_dist')
+
+
+@invoke.task(pre=[init_css, deps_less, build_mkdir_build])
+def build_less(debug=False):
+  """Builds Less.js files into compiled CSS."""
+  src_folder = 'src/static/css'
+  targets = os.listdir(src_folder)
+  build_folder = 'build/css'
+  Build.mkdir(build_folder)
+  for target in targets:
+    src = os.path.join(src_folder, target)
+    if os.path.isfile(src):
+      dest = os.path.join(build_folder, target.replace('.less', '.css'))
+      # Process both Less.js and CSS files. CSS files will at least benefit
+      # from minification.
+      if target.endswith('.less') or target.endswith('.css'):
+        if debug:
+          subprocess.call(['thirdparty/node_modules/.bin/lessc', src, dest])
+        else:
+          subprocess.call([
+              'thirdparty/node_modules/.bin/lessc',
+              '--clean-css',
+              src,
+              dest
+          ])
+
+NS_BUILD.add_task(build_less, 'less')
+
+
+@invoke.task(pre=[init_js, deps_closure, build_mkdir_build])
+def build_js(debug=False):
+  """Compiles the Javascript."""
+  src_folder = 'src/static/js'
+  targets = os.listdir(src_folder)
+  build_folder = 'build/js'
+  Build.mkdir(build_folder)
+
+  extra_args = []
+
+  optimization_level = 'ADVANCED_OPTIMIZATIONS'
+  if debug:
+    optimization_level = 'SIMPLE_OPTIMIZATIONS'
+    extra_args.append('--formatting')
+    extra_args.append('PRETTY_PRINT')
+    extra_args.append('--define="__DEBUG__=true"')
+
+  externs = Build.recurse_build_args(
+      'src/static/thirdparty/externs',
+      '--externs'
+  )
+  externs = externs + Build.recurse_build_args(
+      os.path.join(src_folder, 'externs'),
+      '--externs'
+  )
+  js_args = Build.recurse_build_args(os.path.join(src_folder, 'lib'))
+
+  for target in targets:
+    src = os.path.join(src_folder, target)
+    is_file = os.path.isfile(src)
+    if is_file and target.endswith('.js') and target != 'typedefs.js':
+      dest = os.path.join(build_folder, target)
+      command = [
+          'java', '-jar', 'thirdparty/compiler-latest/compiler.jar',
+          '--compilation_level', optimization_level,
+          '--manage_closure_dependencies',
+          '--process_closure_primitives',
+          '--js', 'src/static/js/typedefs.js',
+          '--js', src,
+          '--js_output_file', dest
+      ] + extra_args + externs + js_args
+      subprocess.call(command)
+
+NS_BUILD.add_task(build_js, 'js')
+
+
+@invoke.task(pre=[
+    build_mkdir_build,
+    build_mkdir_dist
+])  # NOTE: Not depending on the CSS and JS build tasks here so they can be
+    #     explicit elsewhere.
+def build_collect_dist():
+  """Collects artifacts out of src and build and places them in dist."""
+  # This is a little wasteful but works fine.
+  invoke.run('cp -r src dist/default')
+  invoke.run('rm -rf dist/default/static/css')
+  invoke.run('rm -rf dist/default/static/js')
+  invoke.run('rm -rf dist/default/static/thirdparty/externs')
+  invoke.run('cp -r build/css dist/default/static/')
+  invoke.run('cp -r build/js dist/default/static/')
+
+NS_BUILD.add_task(build_collect_dist, 'collect_dist')
+
+################################################################################
+#
+# test: A stubbed collection for testing.
+#
+################################################################################
+
+NS_TEST = invoke.Collection('test')
+NS.add_collection(NS_TEST)
+
+################################################################################
+#
+# run: A stubbed collection for running.
+#
+################################################################################
+
+NS_RUN = invoke.Collection('run')
+NS.add_collection(NS_RUN)
+
+################################################################################
+#
+# deploy: A stubbed collection for deployment.
+#
+################################################################################
+
+NS_DEPLOY = invoke.Collection('deploy')
+NS.add_collection(NS_DEPLOY)
+
+################################################################################
+################################################################################
+####    START CUSTOMIZING HERE                                              ####
+################################################################################
+################################################################################
+
+# Add common separated list of Javascript namespaces for the Closure compiler.
+# This will improve linting and compile results.
+JS_NAMESPACE = ''
+
+
+@invoke.task(pre=[
+    init_folders,
+    init_gitignore,
+    init_vagrant,
+    init_css,
+    init_js
+], default=True)
+def init_all():
+  """Fully initializes a basic project folder structure and files."""
+  # Add custom project initialization here.
+  pass
+
+NS_INIT.add_task(init_all, 'all')
+
+# NOTE: Search is not a collection of tasks, just a simple helper.
+
+
+@invoke.task(pre=[
+    deps_nodejs,
+    deps_less,
+    deps_java,
+    deps_closure,
+    deps_pylint,
+    deps_gflags,
+    deps_closure_linter
+], default=True)
+def deps_all():
+  """Fully installs scaffolding and project dependencies."""
+  # Add custom project dependencies here.
+  pass
+
+NS_DEPS.add_task(deps_all, 'all')
+
+
+@invoke.task(pre=[
+    lint_less,
+    lint_pylint,
+    lint_gjslint
+], default=True)
+def lint_all():
+  """Lints the code."""
+  # Add custom project linting rules here.
+  pass
+
+NS_LINT.add_task(lint_all, 'all')
+
+
+@invoke.task(pre=[
+    clean_build,
+    clean_dist
+], default=True)
+def clean_all():
+  """Cleans the build."""
+  # Add custom project cleaning rules here.
+  pass
+
+NS_CLEAN.add_task(clean_all, 'all')
+
+
+@invoke.task(pre=[
+    clean_all,  # TODO(jordoncm): Cleanup build steps to make this not needed.
+    build_mkdir_build,
+    build_less,
+    build_js,
+    build_mkdir_dist,
+    build_collect_dist
+], default=True)
+def build_all():
+  """Builds the project."""
+  # Add custom project build rules here.
+  pass
+
+NS_BUILD.add_task(build_all, 'all')
+
+
+@invoke.task(pre=[
+    clean_all,  # TODO(jordoncm): Cleanup build steps to make this not needed.
+    build_mkdir_build,
+    invoke.call(build_less, True),
+    invoke.call(build_js, True),
+    build_mkdir_dist,
+    build_collect_dist
+])
+def build_debug():
+  """Builds the project in debug mode."""
+  # NOTE: This rule is needed because invoke does not pass task flags to
+  #     sub-tasks (pre-tasks).
+  # Add custom project build rules here.
+  pass
+
+NS_BUILD.add_task(build_debug, 'debug')
+
+
+@invoke.task(pre=[], default=True)
+def test_all():
+  """Executes tests."""
+  # Add custom project testing process here.
+  pass
+
+NS_TEST.add_task(test_all, 'all')
+
+
+@invoke.task(pre=[build_all], default=True)
+def run_all():
+  """Build and run the project."""
+  # Add custom project running process here.
+  pass
+
+NS_RUN.add_task(run_all, 'all')
+
+
+@invoke.task(pre=[build_all], default=True)
+def deploy_all():
+  """Builds and deploys the project."""
+  # Add custom project deployment process here.
+  pass
+
+NS_DEPLOY.add_task(deploy_all, 'all')
+
+################################################################################
+################################################################################
+####    STOP CUSTOMIZING HERE                                               ####
+################################################################################
+################################################################################
+
+
+def main():
+  """Kickoff the invoke runtime."""
+  # Make things easier by adding Node.js to the PATH.
+  os.environ['PATH'] += os.pathsep + 'thirdparty/%s/bin' % (NODE_FILE)
+
+  # TODO(jordoncm): Need to come up with something that will detect/seek a
+  #     project root and error if not found. All tasks currently assume the CWD
+  #     is the root of a project.
+
+  program = invoke.Program(
+      name='Web Application Scaffolding',
+      binary='was',
+      version='0.3',
+      namespace=NS
+  )
+  program.run(sys.argv)
+
+if __name__ == '__main__':
+  main()
