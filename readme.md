@@ -50,7 +50,7 @@ source was/bin/activate
 The `was` script uses the Python package [invoke](http://www.pyinvoke.org/)
 extensively, however there is a bug that breaks was. I have a submitted a [pull
 request](https://github.com/pyinvoke/invoke/pull/288) to fix this, but for now
-you need to install `invoke` manually from my
+the `was` script installs `invoke` manually from my
 [forked version](https://github.com/jordoncm/invoke).
 
 ## Using was

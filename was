@@ -17,11 +17,14 @@ running and deploying web applications.
 
 # pylint: disable=too-many-lines
 
+import httplib
 import os
 import platform
 import shutil
 import subprocess
 import sys
+import tempfile
+import zipfile
 
 HAS_PIP = True
 try:
@@ -45,10 +48,45 @@ def install_base_dep(package, *args):
     print 'ERROR: Base dependency is missing, cannot proceed.'
     exit(1)
 
+
+def install_base_dep_from_github(package, prefix, repo, branch='master'):
+  """Prompt the user to install missing dependency from GitHub."""
+  print 'Base dependency missing: %s' % (package)
+  result = None
+  while result not in ['Y', 'y', 'N', 'n']:
+    result = raw_input('Would you like to install? (y/n): ')
+  if result in ['Y', 'y']:
+    cwd = os.getcwd()
+    tmp = tempfile.mkdtemp()
+    os.chdir(tmp)
+
+    # This is a bit fragile but hopefully we wont need it for long. The URL
+    # format is: https://codeload.github.com/[prefix]/[repo]/zip/[branch]
+    c = httplib.HTTPSConnection('codeload.github.com')  # pylint: disable=invalid-name
+    c.request('GET', '/' + prefix + '/' + repo + '/zip/' + branch)
+    response = c.getresponse()
+
+    zipname = repo + '-' + branch + '.zip'
+    with open(zipname, 'w') as f:  # pylint: disable=invalid-name
+      f.write(response.read())
+
+    with zipfile.ZipFile(zipname) as zf:  # pylint: disable=invalid-name
+      zf.extractall()
+
+    os.chdir(repo + '-' + branch)
+    subprocess.call(['python', 'setup.py', 'install'])
+
+    os.chdir(cwd)
+    shutil.rmtree(tmp)
+  else:
+    print 'ERROR: Base dependency is missing, cannot proceed.'
+    exit(1)
+
 try:
   import invoke  # pylint: disable=wrong-import-position
 except ImportError:
-  install_base_dep('invoke==dev', '--allow-unverified', 'invoke')
+  # install_base_dep('invoke==dev', '--allow-unverified', 'invoke')
+  install_base_dep_from_github('invoke', 'jordoncm', 'invoke')
   import invoke  # pylint: disable=wrong-import-position
 
 ################################################################################
