@@ -17,6 +17,7 @@ running and deploying web applications.
 
 # pylint: disable=too-many-lines
 
+import contextlib
 import httplib
 import os
 import platform
@@ -49,6 +50,8 @@ def install_base_dep(package, *args):
     exit(1)
 
 
+# TODO(jordoncm): It looks like pip can install from a git target. Move this to
+#     use that.
 def install_base_dep_from_github(package, prefix, repo, branch='master'):
   """Prompt the user to install missing dependency from GitHub."""
   print 'Base dependency missing: %s' % (package)
@@ -119,6 +122,16 @@ CLOSURE_LINTER_URL = 'https://github.com/google/closure-linter/archive/%s.zip' %
 ################################################################################
 
 NS = invoke.Collection()
+
+
+@contextlib.contextmanager
+def cd(path):
+  old_dir = os.getcwd()
+  os.chdir(path)
+  try:
+    yield
+  finally:
+    os.chdir(old_dir)
 
 
 def find(name, path='.', exclude_paths=None):
@@ -546,14 +559,34 @@ NS_DEPS = invoke.Collection('deps')
 NS.add_collection(NS_DEPS)
 
 
+class Deps(object):
+  """Support methods for dependencies."""
+
+  @staticmethod
+  def install_nodejs(path='thirdparty'):
+    """Installs Node.js."""
+    with cd(path):
+      if not os.path.isfile('%s.tar.gz' % (NODE_FILE)):
+        run(['wget', NODE_URL])
+        run(['tar', '-xzf', '%s.tar.gz' % (NODE_FILE)])
+
+  @staticmethod
+  def install_nodejs_lib(lib_name, path='thirdparty'):
+    """Installs a Node.js library using npm."""
+    with cd(path):
+      result = invoke.run(' '.join([
+          '%s/bin/npm' % (NODE_FILE),
+          'list',
+          '--depth=0'
+      ]), hide=True)
+      if result.stdout.find(lib_name) == -1:
+        run(['%s/bin/npm' % (NODE_FILE), 'install', lib_name])
+
+
 @invoke.task(pre=[init_folders])
 def deps_nodejs():
   """Installs Node.js."""
-  os.chdir('thirdparty')
-  if not os.path.isfile('%s.tar.gz' % (NODE_FILE)):
-    run(['wget', NODE_URL])
-    run(['tar', '-xzf', '%s.tar.gz' % (NODE_FILE)])
-  os.chdir('..')
+  Deps.install_nodejs()
 
 NS_DEPS.add_task(deps_nodejs, 'nodejs')
 
@@ -561,23 +594,8 @@ NS_DEPS.add_task(deps_nodejs, 'nodejs')
 @invoke.task(pre=[init_folders, deps_nodejs])
 def deps_less():
   """Installs Less.js"""
-  os.chdir('thirdparty')
-  result = invoke.run(' '.join([
-      '%s/bin/npm' % (NODE_FILE),
-      'list',
-      '--depth=0'
-  ]), hide=True)
-  if result.stdout.find('less') == -1:
-    run(['%s/bin/npm' % (NODE_FILE), 'install', 'less'])
-
-  result = invoke.run(' '.join([
-      '%s/bin/npm' % (NODE_FILE),
-      'list',
-      '--depth=0'
-  ]), hide=True)
-  if result.stdout.find('less-plugin-clean-css') == -1:
-    run(['%s/bin/npm' % (NODE_FILE), 'install', 'less-plugin-clean-css'])
-  os.chdir('..')
+  Deps.install_nodejs_lib('less')
+  Deps.install_nodejs_lib('less-plugin-clean-css')
 
 NS_DEPS.add_task(deps_less, 'less')
 
