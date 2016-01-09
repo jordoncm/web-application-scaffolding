@@ -622,16 +622,15 @@ NS_DEPS.add_task(deps_unzip, 'unzip')
 @invoke.task(pre=[init_folders, deps_java, deps_unzip])
 def deps_closure():
   """Installs the Closure compiler."""
-  os.chdir('thirdparty')
-  if not os.path.isfile('%s.zip' % (CLOSURE_COMPILER_FILE)):
-    run(['wget', CLOSURE_COMPILER_URL])
-    run([
-        'unzip',
-        '%s.zip' % (CLOSURE_COMPILER_FILE),
-        '-d',
-        CLOSURE_COMPILER_FILE
-    ])
-  os.chdir('..')
+  with cd('thirdparty'):
+    if not os.path.isfile('%s.zip' % (CLOSURE_COMPILER_FILE)):
+      run(['wget', CLOSURE_COMPILER_URL])
+      run([
+          'unzip',
+          '%s.zip' % (CLOSURE_COMPILER_FILE),
+          '-d',
+          CLOSURE_COMPILER_FILE
+      ])
 
 NS_DEPS.add_task(deps_closure, 'closure')
 
@@ -654,14 +653,12 @@ NS_DEPS.add_task(deps_pylint, 'pylint')
 @invoke.task(pre=[init_folders, deps_unzip])
 def deps_gflags():
   """Installs GFLAGS for Python."""
-  os.chdir('thirdparty')
-  if not os.path.isfile('%s.zip' % (GFLAGS_FILE)):
-    run(['wget', GFLAGS_URL])
-    run(['unzip', '%s.zip' % (GFLAGS_FILE)])
-    os.chdir('python-gflags-%s' % (GFLAGS_FILE))
-    run(['python', 'setup.py', 'install'])
-    os.chdir('..')
-  os.chdir('..')
+  with cd('thirdparty'):
+    if not os.path.isfile('%s.zip' % (GFLAGS_FILE)):
+      run(['wget', GFLAGS_URL])
+      run(['unzip', '%s.zip' % (GFLAGS_FILE)])
+      with cd('python-gflags-%s' % (GFLAGS_FILE)):
+        run(['python', 'setup.py', 'install'])
 
 NS_DEPS.add_task(deps_gflags, 'gflags')
 
@@ -669,14 +666,12 @@ NS_DEPS.add_task(deps_gflags, 'gflags')
 @invoke.task(pre=[init_folders, deps_unzip, deps_gflags])
 def deps_closure_linter():
   """Installs the Closure linter."""
-  os.chdir('thirdparty')
-  if not os.path.isfile('%s.zip' % (CLOSURE_LINTER_FILE)):
-    run(['wget', CLOSURE_LINTER_URL])
-    run(['unzip', '%s.zip' % (CLOSURE_LINTER_FILE)])
-    os.chdir('closure-linter-%s' % (CLOSURE_LINTER_VERSION))
-    run(['python', 'setup.py', 'install'])
-    os.chdir('..')
-  os.chdir('..')
+  with cd('thirdparty'):
+    if not os.path.isfile('%s.zip' % (CLOSURE_LINTER_FILE)):
+      run(['wget', CLOSURE_LINTER_URL])
+      run(['unzip', '%s.zip' % (CLOSURE_LINTER_FILE)])
+      with cd('closure-linter-%s' % (CLOSURE_LINTER_VERSION)):
+        run(['python', 'setup.py', 'install'])
 
 NS_DEPS.add_task(deps_closure_linter, 'closure_linter')
 
