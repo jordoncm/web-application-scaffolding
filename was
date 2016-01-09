@@ -18,14 +18,11 @@ running and deploying web applications.
 # pylint: disable=too-many-lines
 
 import contextlib
-import httplib
 import os
 import platform
 import shutil
 import subprocess
 import sys
-import tempfile
-import zipfile
 
 HAS_PIP = True
 try:
@@ -53,9 +50,9 @@ try:
   import invoke  # pylint: disable=wrong-import-position
 except ImportError:
   install_base_dep(
-    'https://github.com/jordoncm/invoke/archive/master.zip',
-    '--allow-unverified',
-    'invoke')
+      'https://github.com/jordoncm/invoke/archive/master.zip',
+      '--allow-unverified',
+      'invoke')
   import invoke  # pylint: disable=wrong-import-position
 
 ################################################################################
@@ -82,8 +79,10 @@ GFLAGS_URL = 'https://github.com/google/python-gflags/archive/%s.zip' % (
 
 CLOSURE_LINTER_VERSION = '2.3.19'
 CLOSURE_LINTER_FILE = 'v%s' % (CLOSURE_LINTER_VERSION)
-CLOSURE_LINTER_URL = 'https://github.com/google/closure-linter/archive/%s.zip' % (
-    CLOSURE_LINTER_FILE
+CLOSURE_LINTER_URL = (
+    'https://github.com/google/closure-linter/archive/%s.zip' % (
+        CLOSURE_LINTER_FILE
+    )
 )
 ################################################################################
 
@@ -91,7 +90,8 @@ NS = invoke.Collection()
 
 
 @contextlib.contextmanager
-def cd(path):
+def cd(path):  # pylint: disable=invalid-name
+  """Contextual method that changes the path and then restores it on close."""
   old_dir = os.getcwd()
   os.chdir(path)
   try:
@@ -100,12 +100,15 @@ def cd(path):
     os.chdir(old_dir)
 
 
-def find(name, path='.', exclude_paths=None):
+def find(names, path='.', exclude_paths=None):
   """Uses the find command to build a file list."""
+  if not isinstance(names, list):
+    names = [names]
   if exclude_paths is None:
     exclude_paths = []
   result = subprocess.check_output(' '.join([
-      'find %s -name "%s"' % (path, name),
+      'find %s \( %s \)' % (  # pylint: disable=anomalous-backslash-in-string
+          path, ' -o '.join(' -name "%s" ' % (i) for i in names)),
   ] + ['-and -not -path "%s"' % i for i in exclude_paths]), shell=True)
   if result:
     return result.split()
@@ -693,7 +696,7 @@ NS_LINT.add_task(lint_less, 'less')
 @invoke.task(pre=[init_folders, deps_pylint])
 def lint_pylint():
   """Runs pylint across Python in the application."""
-  files = find('*.py', exclude_paths=[
+  files = find(['*.py', 'was'], exclude_paths=[
       '*/thirdparty/*',
       '*/build/*',
       '*/dist/*'
