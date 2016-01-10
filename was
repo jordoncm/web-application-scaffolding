@@ -32,7 +32,14 @@ except ImportError:
 
 
 def install_base_dep(package, *args):
-  """Prompt the user to install missing dependency."""
+  """Prompt the user to install missing dependency (via pip).
+
+  Args:
+    package (str): The package to install. This can be really any version of a
+        valid pip install package (i.e. foo, foo==dev,
+        https://github.com/foo/foo/archive/master.zip).
+    *args: Any additional arguments you wish to pass to pip.
+  """
   print 'Base dependency missing: %s' % (package)
   if not HAS_PIP:
     print 'ERROR: pip is missing, cannot install base dependencies.'
@@ -91,7 +98,14 @@ NS = invoke.Collection()
 
 @contextlib.contextmanager
 def cd(path):  # pylint: disable=invalid-name
-  """Contextual method that changes the path and then restores it on close."""
+  """Contextual method that changes the path and then restores it on close.
+
+  Args:
+    path: The path to change to.
+
+  Yields:
+    The closed block of code inside the with.
+  """
   old_dir = os.getcwd()
   os.chdir(path)
   try:
@@ -101,7 +115,19 @@ def cd(path):  # pylint: disable=invalid-name
 
 
 def find(names, path='.', exclude_paths=None):
-  """Uses the find command to build a file list."""
+  """Uses the find command to build a file list.
+
+  Args:
+    names (List[str]): List of path expressions to search for. Can also just be
+        a single string.
+    path (Optional[str]): The path to search from. Defaults to the current
+        directory.
+    exclude_paths (Optional[List[str]]): List of path expressions to exclude.
+        Can also just be a single string.
+
+  Returns:
+    List[str]: A list of paths that match the search.
+  """
   if not isinstance(names, list):
     names = [names]
   if exclude_paths is None:
@@ -117,7 +143,15 @@ def find(names, path='.', exclude_paths=None):
 
 
 def run(command):
-  """Shorthand method to run a command and return the result."""
+  """Shorthand method to run a command and return the result.
+
+  Args:
+    command (List[str]): List of the components for a command to execute. Can
+        also be a string of the full command.
+
+  Returns:
+    invoke.runners.Result: The result of the command execution.
+  """
   if not isinstance(command, list):
     command = [command]
   return invoke.run(' '.join(command))
@@ -447,14 +481,23 @@ class Init(object):
 
   @staticmethod
   def create_folders(paths):
-    """Create a list of folders if they don't already exist."""
+    """Create a list of folders if they don't already exist.
+
+    Args:
+      paths (List[str]): A list of folder paths to create.
+    """
     for path in paths:
       if not os.path.isdir(os.path.join(CWD, path)):
         os.mkdir(os.path.join(CWD, path))
 
   @staticmethod
   def write_file(path, text):
-    """Write a given file path with the provided text."""
+    """Write a given file path with the provided text.
+
+    Args:
+      path (str): The path of the file to write.
+      text (str): The text to write to the given path.
+    """
     # TODO(jordoncm): Add an option to overwrite files.
     if not os.path.isfile(path):
       with open(path, 'w') as f:  # pylint: disable=invalid-name
@@ -533,7 +576,11 @@ class Deps(object):
 
   @staticmethod
   def install_nodejs(path='thirdparty'):
-    """Installs Node.js."""
+    """Installs Node.js.
+
+    Args:
+      path (Optional[str]): The path under which to install.
+    """
     with cd(path):
       if not os.path.isfile('%s.tar.gz' % (NODE_FILE)):
         run(['wget', NODE_URL])
@@ -541,7 +588,13 @@ class Deps(object):
 
   @staticmethod
   def install_nodejs_lib(lib_name, path='thirdparty'):
-    """Installs a Node.js library using npm."""
+    """Installs a Node.js library using npm.
+
+    Args:
+      lib_name (str): The name of the library to install.
+      path (Optional[str]): The path under which to find the Node.js
+          installation.
+    """
     with cd(path):
       result = invoke.run(' '.join([
           '%s/bin/npm' % (NODE_FILE),
@@ -653,7 +706,11 @@ NS_DEPS.add_task(deps_closure_linter, 'closure_linter')
 
 @invoke.task
 def search(needle):
-  """Searches the codebase ignoring scaffolding files and folders."""
+  """Searches the codebase ignoring scaffolding files and folders.
+
+  Args:
+    needle (str): The string to search for.
+  """
   run([
       'grep',
       '-rni',
@@ -774,7 +831,11 @@ class Build(object):
 
   @staticmethod
   def mkdir(path):
-    """Create a folder at the given target."""
+    """Create a folder at the given target.
+
+    Args:
+      path (str): Path to the folder to create.
+    """
     try:
       os.mkdir(path)
     except OSError, e:  # pylint: disable=invalid-name
@@ -784,7 +845,16 @@ class Build(object):
 
   @staticmethod
   def recurse_build_args(base_path, arg_name='--js'):
-    """Recurses a directory structure generating a list of Closure arguments."""
+    """Recurses a directory structure generating a list of Closure arguments.
+
+    Args:
+      base_path (str): The base path to recurse looking for Javascript files.
+      arg_name (Optional[str]): The prefixing argument to use for each file
+          found.
+
+    Returns:
+      List[str]: List of arguments for the compiler.
+    """
     args = []
     files = os.listdir(base_path)
     for filename in files:
@@ -816,7 +886,11 @@ NS_BUILD.add_task(build_mkdir_dist, 'mkdir_dist')
 
 @invoke.task(pre=[init_css, deps_less, build_mkdir_build])
 def build_less(debug=False):
-  """Builds Less.js files into compiled CSS."""
+  """Builds Less.js files into compiled CSS.
+
+  Args:
+    debug (bool): Whether to compile in debug mode.
+  """
   src_folder = 'src/static/css'
   targets = os.listdir(src_folder)
   build_folder = 'build/css'
@@ -843,7 +917,11 @@ NS_BUILD.add_task(build_less, 'less')
 
 @invoke.task(pre=[init_js, deps_closure, build_mkdir_build])
 def build_js(debug=False):
-  """Compiles the Javascript."""
+  """Compiles the Javascript.
+
+  Args:
+    debug (bool): Whether to compile in debug mode.
+  """
   src_folder = 'src/static/js'
   targets = os.listdir(src_folder)
   build_folder = 'build/js'
